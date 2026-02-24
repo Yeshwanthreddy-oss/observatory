@@ -1,0 +1,14 @@
+# Grafana dashboard provisioning: load JSON dashboards from disk.
+apiVersion: 1
+
+providers:
+  - name: observatory
+    orgId: 1
+    folder: Observatory
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

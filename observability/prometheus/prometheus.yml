@@ -1,0 +1,16 @@
+# Prometheus scrape config for the observatory stack.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # The instrumented sample service exposes the golden-signal metrics
+  # (http_requests_total + http_request_duration_seconds) at /metrics.
+  - job_name: service
+    static_configs:
+      - targets: ["service:8000"]
+
+  # Prometheus scraping itself.
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

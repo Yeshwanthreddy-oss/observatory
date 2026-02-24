@@ -1,0 +1,27 @@
+# --- terraform ---
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*.tfvars.local
+# NOTE: .terraform.lock.hcl is intentionally committed (reproducible provider versions).
+
+# --- python ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- env / os ---
+.env
+*.env.local
+.DS_Store
+
+# terraform build artifacts
+terraform/**/build/
+terraform/**/lambda.zip
