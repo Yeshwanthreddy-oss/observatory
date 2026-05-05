@@ -1,0 +1,64 @@
+# observatory — full observability stack
+# One `docker compose up` brings up: instrumented service -> Jaeger (traces via
+# OTLP) and Prometheus (metrics) -> Grafana (golden-signals dashboard).
+# The service exports OTLP traces straight to Jaeger's built-in OTLP receiver
+# (Jaeger all-in-one has one), which keeps the stack lean; a standalone OTel
+# Collector is the documented scale-out step (fan-out, sampling, processors).
+# All image tags are pinned. No cloud account, no secrets.
+
+services:
+  service:
+    build: ./service
+    image: observatory-svc:local
+    container_name: observatory-svc
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_SERVICE_NAME: observatory-svc
+    ports:
+      - "8000:8000"
+    depends_on:
+      - jaeger
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    container_name: observatory-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC (built-in receiver)
+      - "4318:4318"    # OTLP HTTP (built-in receiver)
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: observatory-prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - service
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: observatory-grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_USERS_DEFAULT_THEME: dark
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - jaeger
+    restart: unless-stopped
