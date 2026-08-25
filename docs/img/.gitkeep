@@ -1,0 +1,5 @@
+# Screenshot slot — the integrator adds real PNGs here after `make up && make load`.
+# Expected files (referenced from ../../README.md):
+#   grafana-golden-signals.png
+#   jaeger-traces.png
+#   prometheus-targets.png
